@@ -6,21 +6,26 @@ module.exports = function (app) {
   const translator = new Translator();
 
   app.route('/api/translate').post((req, res) => {
-    const text = req.body.text;
-    const locale = req.body.locale;
-    console.log(text);
-    if (text === undefined || !locale === undefined) {
-      res.json({ error: 'Required field(s) missing' });
-    }
+    const { text, locale } = req.body;
+
     if (text === '') {
-      res.json({
-        error: 'No text to translate',
-      });
+      return res.json({ error: 'No text to translate' });
     }
-    if (locale !== 'american-to-british' || locale !== 'british-to-american') {
-      res.json({
-        error: 'Invalid value for locale field',
-      });
+
+    if (!text || !locale) {
+      return res.json({ error: 'Required field(s) missing' });
     }
+
+    if (!['american-to-british', 'british-to-american'].includes(locale)) {
+      return res.json({ error: 'Invalid value for locale field' });
+    }
+
+    const translation = translator.translate(text, locale);
+
+    if (translation === text) {
+      return res.json({ text, translation: 'Everything looks good to me!' });
+    }
+
+    return res.json({ text, translation });
   });
 };
